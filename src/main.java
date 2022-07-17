@@ -7,19 +7,29 @@ public class main {
         String answer = scanner.next();
         if (answer.equalsIgnoreCase("n")) {
             Gender = false;
-
+            System.out.print("Do you want it to be natured?[Y/N] ");
+            Natured = scanner.next().equalsIgnoreCase("y");
             System.out.print("How many Stats do you want? ");
-            NumStats = scanner.nextInt();
+            NumStats += scanner.nextInt();
             if (NumStats <= 1) {
                 System.out.print("...really?");
                 return;
             }
+            if(Natured){
+                NumStats++;
+            }
             boolean[] Index = new boolean[NumStats];
             int[] available = new int[NumStats];
             Names = new String[NumStats];
-            for (int i = 0; i < NumStats; i++) {
-                System.out.print("Name of Stat :");
-                System.out.print(i + 1);
+            if(Natured){
+                Index[0]=true;
+                available[0]=1;
+                Names[0] = "Nature";
+            }
+            int statCount=1;
+            for (int i = Natured?1:0; i < NumStats; i++) {
+                System.out.print("Name of Stat"+statCount+" :");
+                statCount++;
                 Names[i] = scanner.next();
                 System.out.print("You have how many? :");
                 available[i] = scanner.nextInt();
@@ -28,13 +38,22 @@ public class main {
             ReturnClass res = IsPossible(Index, available, NumStats);
             if (res.sucess) {
                 System.out.println("Success!");
-                System.out.print(res.outString);
+                System.out.println(res.outString);
             } else {
                 System.out.println("No Tree could be build with tis combination");
             }
         } else {
+            Gender =true;
+            System.out.print("Do you want it to be natured?[Y/N] ");
+            Natured = scanner.next().equalsIgnoreCase("y");
+            boolean NaturedIsMale=false;
+            if(Natured){
+                NumStats=1;
+                System.out.print("Is your natured PKMN male?[Y/N] ");
+                NaturedIsMale = scanner.next().equalsIgnoreCase("y");
+            }
             System.out.print("How many Stats do you want?");
-            NumStats = scanner.nextInt();
+            NumStats += scanner.nextInt();
             if (NumStats <= 1) {
                 System.out.print("...really?");
                 return;
@@ -43,9 +62,21 @@ public class main {
             int[] availableM = new int[NumStats];
             int[] availableF = new int[NumStats];
             Names = new String[NumStats];
-            for (int i = 0; i < NumStats; i++) {
-                System.out.print("Name of Stat ");
-                System.out.print(i + 1);
+            if(Natured){
+                Index[0] = true;
+                Names[0] = "Nature";
+                if(NaturedIsMale){
+                    availableM[0]=1;
+                    availableF[0]=0;
+                }else{
+                    availableM[0]=0;
+                    availableF[0]=1;
+                }
+            }
+            int statCount=1;
+            for (int i = Natured?1:0; i < NumStats; i++) {
+                System.out.print("Name of Stat"+statCount+" :");
+                statCount++;
                 Names[i] = scanner.next();
                 System.out.print("You have how many male? ");
                 availableM[i] = scanner.nextInt();
@@ -56,17 +87,49 @@ public class main {
             ReturnClass res = IsPossibleWithGender(Index, availableM, availableF, NumStats);
             if (res.sucess) {
                 System.out.println("Success!");
-                System.out.print(res.outString);
+                System.out.println(res.outString);
             } else {
                 System.out.println("No Tree could be build with tis combination");
             }
         }
-
+        System.out.println("Do you want to estimate the cost of this breed? [Y/N] ");
+        answer = scanner.next();
+        if (answer.equalsIgnoreCase("y")) {
+            int BreedAmount = (int) (Math.pow(2,NumStats-1)-1);
+            int priceForGender=0;
+            int priceItems;
+            int costEverstone=0;
+            if(Natured) {
+                System.out.println("What is the price for everstones? ");
+                costEverstone = scanner.nextInt();
+            }
+            if(Gender) {
+                System.out.println("What is the price to force male? ");
+                int costMale = scanner.nextInt();
+                double chanceMale=1-(costMale/10000.0);
+                double averageCostGender = chanceMale*costMale+(1-chanceMale)*(10000-costMale);
+                priceForGender =(int) averageCostGender*(BreedAmount-1)/2;
+                System.out.println("The average cost for choosing the gender is :"+averageCostGender);
+                System.out.println("You have to choose a minimum of:"+(BreedAmount-1)/2+" genders");
+                System.out.println("On average this breed needs "+priceForGender+"PokeYen for choosing the gender");
+            }
+            System.out.println("You need "+BreedAmount*200+" PokeYen for Pokeballs");
+            if(Natured){
+                System.out.print("You need "+(NumStats-1)*costEverstone+" PokeYen for Everstones");
+                System.out.println("and "+(BreedAmount*2-(NumStats-1))*10000+" PokeYen for BreedingItems");
+                priceItems=(BreedAmount*2-(NumStats-1))*10000+(NumStats-1)*costEverstone+BreedAmount*200;
+            }else {
+                System.out.println("You need "+(BreedAmount*2)*10000+" PokeYen for BreedingItems");
+                priceItems =(BreedAmount*2)*10000+BreedAmount*200;
+            }
+            System.out.println("Overall you will need aproximatley "+(priceForGender+priceItems)+" PokeYen for the complete breed");
+        }
     }
 
     static String[] Names;
     static int NumStats;
     static boolean Gender;
+    static boolean Natured;
 
     private static ReturnClass IsPossibleWithGender(boolean[] _Index, int[] _availableM, int[] _availableF, int _statsToDo) {
 
