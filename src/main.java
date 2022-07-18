@@ -1,18 +1,25 @@
 import java.util.Scanner;
 
 public class main {
+
+    //Variables
+    static String[] Names;
+    static int NumStats;
+    static boolean Gender;
+    static boolean Natured;
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Does the Pokemon you want to breed have a gender? [Y/N]");
+        System.out.print("\nDoes the Pokemon you want to breed have a gender? [Y/N]\n");
         String answer = scanner.next();
         if (answer.equalsIgnoreCase("n")) {
             Gender = false;
-            System.out.print("Do you want it to be natured?[Y/N] ");
+            System.out.print("\nDo you want it to be natured?[Y/N] \n");
             Natured = scanner.next().equalsIgnoreCase("y");
-            System.out.print("How many Stats do you want? ");
+            System.out.print("\nHow many perfect IVs do you want on the final pokemon? \n");
             NumStats += scanner.nextInt();
             if (NumStats <= 1) {
-                System.out.print("...really?");
+                System.out.print("\n...really?\n");
                 return;
             }
             if(Natured){
@@ -28,34 +35,34 @@ public class main {
             }
             int statCount=1;
             for (int i = Natured?1:0; i < NumStats; i++) {
-                System.out.print("Name of Stat"+statCount+" :");
+                System.out.print("\nName the "+statCount+". IV :\n");
                 statCount++;
                 Names[i] = scanner.next();
-                System.out.print("You have how many? :");
+                System.out.print("\nHow many pokemon with perfect "+Names[i]+" do you have?\n");
                 available[i] = scanner.nextInt();
                 Index[i] = true;
             }
             ReturnClass res = IsPossible(Index, available, NumStats);
             if (res.sucess) {
-                System.out.println("Success!");
+                System.out.println("\nSuccess!\nBreed like this :\n");
                 System.out.println(res.outString);
             } else {
-                System.out.println("No Tree could be build with tis combination");
+                System.out.println("\nNo Breeding-Tree could be build with this combination\n");
             }
         } else {
             Gender =true;
-            System.out.print("Do you want it to be natured?[Y/N] ");
+            System.out.print("\nDo you want it to be natured?[Y/N] \n");
             Natured = scanner.next().equalsIgnoreCase("y");
             boolean NaturedIsMale=false;
             if(Natured){
                 NumStats=1;
-                System.out.print("Is your natured PKMN male?[Y/N] ");
+                System.out.print("\nIs your natured breeding pokemon male?[Y/N] \n");
                 NaturedIsMale = scanner.next().equalsIgnoreCase("y");
             }
-            System.out.print("How many Stats do you want?");
+            System.out.print("\nHow many perfect IVs do you want on the final pokemon? \n");
             NumStats += scanner.nextInt();
             if (NumStats <= 1) {
-                System.out.print("...really?");
+                System.out.print("\n...really?\n");
                 return;
             }
             boolean[] Index = new boolean[NumStats];
@@ -75,24 +82,24 @@ public class main {
             }
             int statCount=1;
             for (int i = Natured?1:0; i < NumStats; i++) {
-                System.out.print("Name of Stat"+statCount+" :");
+                System.out.print("\nName the "+statCount+". IV :\n");
                 statCount++;
                 Names[i] = scanner.next();
-                System.out.print("You have how many male? ");
+                System.out.print("\nHow many MALE pokemon with perfect "+Names[i]+" do you have?\n");
                 availableM[i] = scanner.nextInt();
-                System.out.print("You have how many female? ");
+                System.out.print("\nHow many FEMALE pokemon with perfect "+Names[i]+" do you have?\n");
                 availableF[i] = scanner.nextInt();
                 Index[i] = true;
             }
             ReturnClass res = IsPossibleWithGender(Index, availableM, availableF, NumStats);
             if (res.sucess) {
-                System.out.println("Success!");
+                System.out.println("\nSuccess!\nBreed like this :\n");
                 System.out.println(res.outString);
             } else {
-                System.out.println("No Tree could be build with tis combination");
+                System.out.println("\nNo Breeding-Tree could be build with this combination\n");
             }
         }
-        System.out.println("Do you want to estimate the cost of this breed? [Y/N] ");
+        System.out.println("\n\nWould you like to know how expensive this breed will be? [Y/N]");
         answer = scanner.next();
         if (answer.equalsIgnoreCase("y")) {
             int BreedAmount = (int) (Math.pow(2,NumStats-1)-1);
@@ -100,36 +107,36 @@ public class main {
             int priceItems;
             int costEverstone=0;
             if(Natured) {
-                System.out.println("What is the price for everstones? ");
+                System.out.println("\nWhat is the price for everstones? ");
                 costEverstone = scanner.nextInt();
             }
-            if(Gender) {
-                System.out.println("What is the price to force male? ");
+
+            if(Gender){
+                System.out.println("\nWhat is the price to force male?");
                 int costMale = scanner.nextInt();
                 double chanceMale=1-(costMale/10000.0);
                 double averageCostGender = chanceMale*costMale+(1-chanceMale)*(10000-costMale);
                 priceForGender =(int) averageCostGender*(BreedAmount-1)/2;
-                System.out.println("The average cost for choosing the gender is :"+averageCostGender);
-                System.out.println("You have to choose a minimum of:"+(BreedAmount-1)/2+" genders");
-                System.out.println("On average this breed needs "+priceForGender+"PokeYen for choosing the gender");
+                System.out.println("------------------------ COSTS --------------------------");
+                System.out.println("The average cost for choosing the gender is :  "+averageCostGender);
+                System.out.println("You have to choose a minimum of :  "+(BreedAmount-1)/2+" genders");
+                System.out.println("On average this breed needs  "+priceForGender+" PokeYen for choosing the gender");
+            }else{
+                System.out.println("------------------------ COSTS --------------------------");
             }
-            System.out.println("You need "+BreedAmount*200+" PokeYen for Pokeballs");
+            System.out.println("You will need  "+BreedAmount*200+" PokeYen for Pokeballs");
             if(Natured){
-                System.out.print("You need "+(NumStats-1)*costEverstone+" PokeYen for Everstones");
-                System.out.println("and "+(BreedAmount*2-(NumStats-1))*10000+" PokeYen for BreedingItems");
+                System.out.print("You will need  "+(NumStats-1)*costEverstone+" PokeYen for Everstones ");
+                System.out.println("\nand  "+(BreedAmount*2-(NumStats-1))*10000+" PokeYen for BreedingItems");
                 priceItems=(BreedAmount*2-(NumStats-1))*10000+(NumStats-1)*costEverstone+BreedAmount*200;
             }else {
-                System.out.println("You need "+(BreedAmount*2)*10000+" PokeYen for BreedingItems");
+                System.out.println("You need  "+(BreedAmount*2)*10000+" PokeYen for BreedingItems");
                 priceItems =(BreedAmount*2)*10000+BreedAmount*200;
             }
-            System.out.println("Overall you will need aproximatley "+(priceForGender+priceItems)+" PokeYen for the complete breed");
+            System.out.println("\nOverall you will need aproximatley  "+(priceForGender+priceItems)+" PokeYen for the complete breed");
+            System.out.println("---------------------------------------------------------");
         }
     }
-
-    static String[] Names;
-    static int NumStats;
-    static boolean Gender;
-    static boolean Natured;
 
     private static ReturnClass IsPossibleWithGender(boolean[] _Index, int[] _availableM, int[] _availableF, int _statsToDo) {
 
@@ -226,14 +233,14 @@ public class main {
                         if (_availableF[i] > 0) {
                             first = i;
                             usedF[i]++;
-                            outString += Names[i] + "F+";
+                            outString += Names[i] + "(F)+";
                         } else {
                             return new ReturnClass(false);
                         }
                     } else if (_availableM[i] > 0) {
                         first = i;
                         usedM[i]++;
-                        outString += Names[i] + "M+";
+                        outString += Names[i] + "(M)+";
                     } else {
                         return new ReturnClass(false);
                     }
@@ -241,14 +248,14 @@ public class main {
                     if (_availableF[i] > 0) {
                         second=i;
                         usedF[i]++;
-                        outString += Names[i] + "F | ";
+                        outString += Names[i] + "(F) | ";
                     } else {
                         return new ReturnClass(false);
                     }
                 } else if (_availableM[i] > 0) {
                     second=i;
                     usedM[i]++;
-                    outString += Names[i] + "M | ";
+                    outString += Names[i] + "(M) | ";
                 } else {
                     return new ReturnClass(false);
                 }
