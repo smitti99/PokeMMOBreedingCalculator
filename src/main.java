@@ -114,8 +114,27 @@ public class main {
             if(Gender){
                 System.out.println("\nWhat is the price to force male?");
                 int costMale = scanner.nextInt();
-                double chanceMale=1-(costMale/10000.0);
-                double averageCostGender = chanceMale*costMale+(1-chanceMale)*(10000-costMale);
+                System.out.println("\nWhat is the price to force female?");
+                int costFemale = scanner.nextInt();
+                double chanceMale=0;
+                if(costFemale==costMale){
+                    chanceMale=0.5;
+                } else if (costFemale>costMale) {
+                    if(costFemale==21000){
+                        chanceMale = 0.875;
+                    } else if (costFemale == 9000) {
+                        chanceMale = 0.75;
+                    }
+                }else {
+                    if(costMale==21000){
+                        chanceMale = 0.125;
+                    } else if (costMale == 9000) {
+                        chanceMale = 0.25;
+                    }
+                }
+
+
+                double averageCostGender = chanceMale*costMale+(1-chanceMale)*(costFemale);
                 priceForGender =(int) averageCostGender*(BreedAmount-1)/2;
                 System.out.println("------------------------ COSTS --------------------------");
                 System.out.println("The average cost for choosing the gender is :  "+averageCostGender);
