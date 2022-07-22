@@ -134,7 +134,7 @@ public class main {
                 }
 
 
-                double averageCostGender = chanceMale*costMale+(1-chanceMale)*(costFemale);
+                double averageCostGender = (1-chanceMale)*costMale+chanceMale*costFemale;
                 priceForGender =(int) averageCostGender*(BreedAmount-1)/2;
                 System.out.println("------------------------ COSTS --------------------------");
                 System.out.println("The average cost for choosing the gender is :  "+averageCostGender);
