@@ -1,3 +1,4 @@
+import java.nio.file.FileAlreadyExistsException;
 import java.util.Scanner;
 
 public class main {
@@ -9,329 +10,257 @@ public class main {
     static boolean Natured;
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("\nDoes the Pokemon you want to breed have a gender? [Y/N]\n");
-        String answer = scanner.next();
-        if (answer.equalsIgnoreCase("n")) {
-            Gender = false;
-            System.out.print("\nDo you want it to be natured?[Y/N] \n");
-            Natured = scanner.next().equalsIgnoreCase("y");
-            System.out.print("\nHow many perfect IVs do you want on the final pokemon? \n");
-            NumStats += scanner.nextInt();
-            if (NumStats <= 1) {
-                System.out.print("\n...really?\n");
-                return;
-            }
-            if(Natured){
-                NumStats++;
-            }
-            boolean[] Index = new boolean[NumStats];
-            int[] available = new int[NumStats];
-            Names = new String[NumStats];
-            if(Natured){
-                Index[0]=true;
-                available[0]=1;
-                Names[0] = "Nature";
-            }
-            int statCount=1;
-            for (int i = Natured?1:0; i < NumStats; i++) {
-                System.out.print("\nName the "+statCount+". IV :\n");
-                statCount++;
-                Names[i] = scanner.next();
-                System.out.print("\nHow many pokemon with perfect "+Names[i]+" do you have?\n");
-                available[i] = scanner.nextInt();
-                Index[i] = true;
-            }
-            ReturnClass res = IsPossible(Index, available, NumStats);
-            if (res.sucess) {
-                System.out.println("\nSuccess!\nBreed like this :\n");
-                System.out.println(res.outString);
-            } else {
-                System.out.println("\nNo Breeding-Tree could be build with this combination\n");
-            }
-        } else {
-            Gender =true;
-            System.out.print("\nDo you want it to be natured?[Y/N] \n");
-            Natured = scanner.next().equalsIgnoreCase("y");
-            boolean NaturedIsMale=false;
-            if(Natured){
-                NumStats=1;
-                System.out.print("\nIs your natured breeding pokemon male?[Y/N] \n");
-                NaturedIsMale = scanner.next().equalsIgnoreCase("y");
-            }
-            System.out.print("\nHow many perfect IVs do you want on the final pokemon? \n");
-            NumStats += scanner.nextInt();
-            if (NumStats <= 1) {
-                System.out.print("\n...really?\n");
-                return;
-            }
-            boolean[] Index = new boolean[NumStats];
-            int[] availableM = new int[NumStats];
-            int[] availableF = new int[NumStats];
-            Names = new String[NumStats];
-            if(Natured){
-                Index[0] = true;
-                Names[0] = "Nature";
-                if(NaturedIsMale){
-                    availableM[0]=1;
-                    availableF[0]=0;
-                }else{
-                    availableM[0]=0;
-                    availableF[0]=1;
-                }
-            }
-            int statCount=1;
-            for (int i = Natured?1:0; i < NumStats; i++) {
-                System.out.print("\nName the "+statCount+". IV :\n");
-                statCount++;
-                Names[i] = scanner.next();
-                System.out.print("\nHow many MALE pokemon with perfect "+Names[i]+" do you have?\n");
-                availableM[i] = scanner.nextInt();
-                System.out.print("\nHow many FEMALE pokemon with perfect "+Names[i]+" do you have?\n");
-                availableF[i] = scanner.nextInt();
-                Index[i] = true;
-            }
-            ReturnClass res = IsPossibleWithGender(Index, availableM, availableF, NumStats);
-            if (res.sucess) {
-                System.out.println("\nSuccess!\nBreed like this :\n");
-                System.out.println(res.outString);
-            } else {
-                System.out.println("\nNo Breeding-Tree could be build with this combination\n");
-            }
-        }
-        System.out.println("\n\nWould you like to know how expensive this breed will be? [Y/N]");
-        answer = scanner.next();
-        if (answer.equalsIgnoreCase("y")) {
-            int BreedAmount = (int) (Math.pow(2,NumStats-1)-1);
-            int priceForGender=0;
-            int priceItems;
-            int costEverstone=0;
-            if(Natured) {
-                System.out.println("\nWhat is the price for everstones? ");
-                costEverstone = scanner.nextInt();
-            }
-
-            if(Gender){
-                System.out.println("\nWhat is the price to force male?");
-                int costMale = scanner.nextInt();
-                System.out.println("\nWhat is the price to force female?");
-                int costFemale = scanner.nextInt();
-                double chanceMale=0;
-                if(costFemale==costMale){
-                    chanceMale=0.5;
-                } else if (costFemale>costMale) {
-                    if(costFemale==21000){
-                        chanceMale = 0.875;
-                    } else if (costFemale == 9000) {
-                        chanceMale = 0.75;
-                    }
-                }else {
-                    if(costMale==21000){
-                        chanceMale = 0.125;
-                    } else if (costMale == 9000) {
-                        chanceMale = 0.25;
-                    }
-                }
-
-
-                double averageCostGender = (1-chanceMale)*costMale+chanceMale*costFemale;
-                priceForGender =(int) averageCostGender*(BreedAmount-1)/2;
-                System.out.println("------------------------ COSTS --------------------------");
-                System.out.println("The average cost for choosing the gender is :  "+averageCostGender);
-                System.out.println("You have to choose a minimum of :  "+(BreedAmount-1)/2+" genders");
-                System.out.println("On average this breed needs  "+priceForGender+" PokeYen for choosing the gender");
-            }else{
-                System.out.println("------------------------ COSTS --------------------------");
-            }
-            System.out.println("You will need  "+BreedAmount*200+" PokeYen for Pokeballs");
-            if(Natured){
-                System.out.print("You will need  "+(NumStats-1)*costEverstone+" PokeYen for Everstones ");
-                System.out.println("\nand  "+(BreedAmount*2-(NumStats-1))*10000+" PokeYen for BreedingItems");
-                priceItems=(BreedAmount*2-(NumStats-1))*10000+(NumStats-1)*costEverstone+BreedAmount*200;
-            }else {
-                System.out.println("You need  "+(BreedAmount*2)*10000+" PokeYen for BreedingItems");
-                priceItems =(BreedAmount*2)*10000+BreedAmount*200;
-            }
-            System.out.println("\nOverall you will need aproximatley  "+(priceForGender+priceItems)+" PokeYen for the complete breed");
-            System.out.println("---------------------------------------------------------");
-        }
+       /* BreedingData Input = new BreedingData();
+        Input.Goal = new boolean[]{true, true, true, false, false, false, false};
+        Input.Stats1[0].male = 0;
+        Input.Stats1[1].male = 1;
+        Input.Stats1[2].male = 1;
+        Input.Stats2[0][2].male = 1;
+        Input.has[0] = true;
+        Input.has[1] = true;
+        BreedingData out = CreateBreedingTree(Input, 3);
+        //System.out.println(out.outString);
+        System.out.println(out.success);
+        */
+        StartProgram();
     }
 
-    private static ReturnClass IsPossibleWithGender(boolean[] _Index, int[] _availableM, int[] _availableF, int _statsToDo) {
-
-        int[] localAvM;
-        int[] localAvF;
-        for (int i = 0; i < NumStats; i++) {
-            if (!_Index[i]) continue;
-            boolean[] leftIndex = _Index.clone();
-            leftIndex[i] = false;
-            ReturnClass leftRes;
-            if (_statsToDo == 3) {
-                leftRes = GenderSubFuntion(leftIndex, _availableM, _availableF, true);
-                if(!leftRes.sucess) leftRes = GenderSubFuntion(leftIndex, _availableM, _availableF, false);
-            }else {
-                leftRes = IsPossibleWithGender(leftIndex,_availableM,_availableF,_statsToDo-1);
-            }
-            if(!leftRes.sucess) continue;
-            localAvM = _availableM.clone();
-            localAvF = _availableF.clone();
-            for (int k=0;k<NumStats;k++){
-                localAvF[k] -= leftRes.usedF[k];
-                localAvM[k] -= leftRes.used[k];
-            }
-            for (int j = 0; j < NumStats; j++) {
-                if(j==i||!_Index[j]) continue;
-                boolean[] rightIndex = _Index.clone();
-                rightIndex[j] = false;
-                ReturnClass rightRes;
-                if (_statsToDo == 3) {
-                    rightRes = GenderSubFuntion(rightIndex, localAvM, localAvF, true);
-                    if(!rightRes.sucess)  rightRes = GenderSubFuntion(rightIndex, localAvM, localAvF, false);
-                }else {
-                    rightRes = IsPossibleWithGender(rightIndex,localAvM,localAvF,_statsToDo-1);
-                }
-                if(rightRes.sucess){
-                    for (int k=0;k<NumStats;k++){
-                        rightRes.usedF[k] += leftRes.usedF[k];
-                        rightRes.used[k] += leftRes.used[k];
-                    }
-                    return new ReturnClass(rightRes.used, rightRes.usedF, leftRes.outString+rightRes.outString,true );
-                }
-            }
-        }
-
-       /* for (int i = 0; i < NumStats; i++) {
-            if (!_Index[i]) continue;
-            boolean[] leftIndex = _Index.clone();
-            leftIndex[i] = false;
-            ReturnClass leftRes;
-            if (_statsToDo == 3) {
-                leftRes = GenderSubFuntion(leftIndex, _availableM, _availableF, false);
-            }else {
-                leftRes = IsPossibleWithGender(leftIndex,_availableM,_availableF,_statsToDo-1);
-            }
-            if(!leftRes.sucess) continue;
-            localAvM = _availableM.clone();
-            localAvF = _availableF.clone();
-            for (int k=0;k<NumStats;k++){
-                localAvF[k] -= leftRes.usedF[k];
-                localAvM[k] -= leftRes.used[k];
-            }
-            for (int j = 0; j < NumStats; j++) {
-                if(j==i||!_Index[j]) continue;
-                boolean[] rightIndex = _Index.clone();
-                rightIndex[j] = false;
-                ReturnClass rightRes;
-                if (_statsToDo == 3) {
-                    rightRes = GenderSubFuntion(rightIndex, localAvM, localAvF, true);
-                }else {
-                    rightRes = IsPossibleWithGender(rightIndex,localAvM,localAvF,_statsToDo-1);
-                }
-                if(rightRes.sucess){
-                    for (int k=0;k<NumStats;k++){
-                        rightRes.usedF[k] += leftRes.usedF[k];
-                        rightRes.used[k] += leftRes.used[k];
-                    }
-                    return new ReturnClass(rightRes.used, rightRes.usedF, leftRes.outString+rightRes.outString,true );
-                }
-            }
-        }*/
-        return new ReturnClass(false);
+    public static void StartProgram() {
+        GUI window= new GUI();
     }
 
-    private static ReturnClass GenderSubFuntion(boolean[] _Index, int[] _availableM, int[] _availableF, boolean firstIsFemale) {
-        int first = -1;
-        int second=-1;
-        String outString = "";
-        int[] usedF = new int[NumStats];
-        int[] usedM = new int[NumStats];
-        for (int i = 0; i < NumStats; i++) {
-            if (_Index[i]) {
-                if (first == -1) {
-                    if (firstIsFemale) {
-                        if (_availableF[i] > 0) {
+    protected static BreedingData CreateBreedingTreeGender(BreedingData data, int statsToDo) {
+        BreedingData localData = new BreedingData(false);
+        if (statsToDo <= 0) return localData;
+
+
+        for (int i = 0; i < 7; i++) {
+            localData = new BreedingData(data);
+            BreedingData leftData = new BreedingData(data);
+            if (!leftData.Goal[i]) continue;
+            leftData.Goal[i] = false;
+            BreedingData copyOfLeftData = new BreedingData(leftData);
+            boolean male = true;
+            boolean female = false;
+            leftData = BreedingTreeSubFunction(copyOfLeftData, statsToDo-1, true);
+            if (!leftData.success) {
+                male = false;
+                female=true;
+                leftData = BreedingTreeSubFunction(copyOfLeftData, statsToDo-1, false);
+                if (!leftData.success) {
+                    female = false;
+                    leftData = CreateBreedingTreeGender(copyOfLeftData, statsToDo - 1);
+                }
+            }
+            if (!leftData.success) continue;
+            localData.SubtractStats(leftData);
+            for (int j = i + 1; j < 7; j++) {
+
+                BreedingData rightData = new BreedingData(localData);
+                if (!rightData.Goal[j]) continue;
+                rightData.Goal[j] = false;
+                BreedingData copyOfRightData = new BreedingData(rightData);
+                if (!male) {
+                    rightData = BreedingTreeSubFunction(copyOfRightData, statsToDo-1, true);
+                }
+                if (!rightData.success && !female) {
+                    rightData = BreedingTreeSubFunction(copyOfRightData, statsToDo-1, false);
+                }
+                if (!rightData.success) {
+                    rightData = CreateBreedingTreeGender(copyOfRightData, statsToDo - 1);
+                }
+                if (!rightData.success) continue;
+                if(male) {
+                    rightData.root = new TreeNode(leftData.root, rightData.root, data.Goal, false, true);
+                } else if (female) {
+                    rightData.root = new TreeNode(leftData.root,rightData.root,data.Goal,true,true);
+                }else {
+                    rightData.root = new TreeNode(leftData.root,rightData.root,data.Goal,true,false);
+                }
+                rightData.AddStats(leftData);
+                rightData.success=true;
+                return rightData;
+            }
+        }
+        return new BreedingData(false);
+    }
+
+    protected static BreedingData CreateBreedingTree(BreedingData data, int statsToDo) {
+        BreedingData localData = new BreedingData(false);
+        if (statsToDo <= 0) return localData;
+        localData = BreedingTreeSubFunction(data,statsToDo,true);
+        if(localData.success)return localData;
+
+        for (int i = 0; i < 7; i++) {
+            localData = new BreedingData(data);
+            BreedingData leftData = new BreedingData(data);
+            if (!leftData.Goal[i]) continue;
+            leftData.Goal[i] = false;
+            leftData = CreateBreedingTree(leftData, statsToDo - 1);
+            if (!leftData.success) continue;
+            localData.SubtractStats(leftData);
+            for (int j = i + 1; j < 7; j++) {
+                BreedingData rightData = new BreedingData(localData);
+                if (!rightData.Goal[j]) continue;
+                rightData.Goal[j] = false;
+                rightData = CreateBreedingTree(rightData, statsToDo - 1);
+                if (!rightData.success) continue;
+                rightData.AddStats(leftData);
+                rightData.root = new TreeNode(leftData.root,rightData.root,data.Goal,true,true);
+                return rightData;
+            }
+        }
+        return new BreedingData(false);
+    }
+
+    private static BreedingData BreedingTreeSubFunction(BreedingData data, int statsToDo, boolean male) {
+        if(statsToDo<=0){
+            return new BreedingData(false);
+        }
+        if (data.has[statsToDo-1]) {
+            BreedingData localData = new BreedingData();
+            int first = 7, second = 7, third = 7, fourth = 7, fifth = 7, sixth = 7;
+            switch (statsToDo) {
+                case 6:
+                    sixth = 6;
+                case 5:
+                    for (int i = sixth - 1; i >= 0; i--) {
+                        if (data.Goal[i]) {
+                            fifth = i;
+                            break;
+                        }
+                    }
+                case 4:
+                    for (int i = fifth - 1; i >= 0; i--) {
+                        if (data.Goal[i]) {
+                            fourth = i;
+                            break;
+                        }
+                    }
+                case 3:
+                    for (int i = fourth - 1; i >= 0; i--) {
+                        if (data.Goal[i]) {
+                            third = i;
+                            break;
+                        }
+                    }
+                case 2:
+                    for (int i = third - 1; i >= 0; i--) {
+                        if (data.Goal[i]) {
+                            second = i;
+                            break;
+                        }
+                    }
+                default:
+                    for (int i = second - 1; i >= 0; i--) {
+                        if (data.Goal[i]) {
                             first = i;
-                            usedF[i]++;
-                            outString += Names[i] + "(F)+";
-                        } else {
-                            return new ReturnClass(false);
+                            break;
                         }
-                    } else if (_availableM[i] > 0) {
-                        first = i;
-                        usedM[i]++;
-                        outString += Names[i] + "(M)+";
-                    } else {
-                        return new ReturnClass(false);
                     }
-                } else if (!firstIsFemale) {
-                    if (_availableF[i] > 0) {
-                        second=i;
-                        usedF[i]++;
-                        outString += Names[i] + "(F) | ";
-                    } else {
-                        return new ReturnClass(false);
-                    }
-                } else if (_availableM[i] > 0) {
-                    second=i;
-                    usedM[i]++;
-                    outString += Names[i] + "(M) | ";
-                } else {
-                    return new ReturnClass(false);
-                }
+                    break;
             }
-        }
-        if(second==-1){
-            return new ReturnClass(false);
-        }
-        return new ReturnClass(usedM, usedF, outString, true);
-    }
 
-    private static ReturnClass IsPossible(boolean[] _Index, int[] _available, int _statsToDo) {
-        int[] available = _available.clone();
-        if (_statsToDo == 2) {
-            String returnString = "";
-            int[] used = new int[NumStats];
-            for (int k = 0; k < NumStats; k++) {
-                if (_Index[k]) {
-                    if (available[k] > 0) {
-                        used[k]++;
-                        returnString += Names[k];
-                        returnString += "+";
-                    } else {
-                        return new ReturnClass(false);
-                    }
-                }
-            }
-            returnString += " | ";
-            return new ReturnClass(used, returnString, true);
-        }
-        int[] localAvailable = available.clone();
-        for (int i = 0; i < NumStats; i++) {
-            boolean[] left = _Index.clone();
-            left[i] = false;
-            ReturnClass leftRes = IsPossible(left, available, _statsToDo - 1);
-            if (!leftRes.sucess) continue;
-            for (int k = 0; k < NumStats; k++) {
-                available[k] -= leftRes.used[k];
-            }
-            for (int j = i + 1; j < NumStats; j++) {
-                if (_Index[i] && _Index[j]) {
-                    boolean[] right = _Index.clone();
-                    right[j] = false;
-                    ReturnClass rightRes = IsPossible(right, available, _statsToDo - 1);
-                    if (rightRes.sucess) {
-                        for (int k = 0; k < NumStats; k++) {
-                            rightRes.used[k] += leftRes.used[k];
-
+            boolean foundMatch = false;
+            if (male) {
+                switch (statsToDo) {
+                    case 1:
+                        if (data.Stats1[first].male > 0) {
+                            localData.Stats1[first].male++;
+                            foundMatch = true;
+                            localData.has[0] = true;
+                            localData.root = new TreeNode(data.Goal,true,true);
                         }
-                        return new ReturnClass(rightRes.used, leftRes.outString + rightRes.outString, true);
-                    }
-
-                    available = localAvailable.clone();
+                        break;
+                    case 2:
+                        if (data.Stats2[first][second].male > 0) {
+                            localData.Stats2[first][second].male++;
+                            foundMatch = true;
+                            localData.has[1] = true;
+                            localData.root = new TreeNode(data.Goal,true,true);                        }
+                        break;
+                    case 3:
+                        if (data.Stats3[first][second][third].male > 0) {
+                            localData.Stats3[first][second][third].male++;
+                            foundMatch = true;
+                            localData.has[2] = true;
+                            localData.root = new TreeNode(data.Goal,true,true);                        }
+                        break;
+                    case 4:
+                        if (data.Stats4[first][second][third][fourth].male > 0) {
+                            localData.Stats4[first][second][third][fourth].male++;
+                            foundMatch = true;
+                            localData.has[3] = true;
+                            localData.root = new TreeNode(data.Goal,true,true);                        }
+                        break;
+                    case 5:
+                        if (data.Stats5[first][second][third][fourth][fifth].male > 0) {
+                            localData.Stats5[first][second][third][fourth][fifth].male++;
+                            foundMatch = true;
+                            localData.has[4] = true;
+                            localData.root = new TreeNode(data.Goal,true,true);                        }
+                        break;
+                    default:
+                        if (data.Stats6[0][1][2][3][4][5].male > 0) {
+                            localData.Stats6[0][1][2][3][4][5].male++;
+                            foundMatch = true;
+                            localData.has[5] = true;
+                            localData.root = new TreeNode(data.Goal,true,true);                        }
+                        break;
+                }
+            } else {
+                switch (statsToDo) {
+                    case 1:
+                        if (data.Stats1[first].female > 0) {
+                            localData.Stats1[first].female++;
+                            foundMatch = true;
+                            localData.has[0] = true;
+                            localData.root = new TreeNode(data.Goal,false,true);                        }
+                        break;
+                    case 2:
+                        if (data.Stats2[first][second].female > 0) {
+                            localData.Stats2[first][second].female++;
+                            foundMatch = true;
+                            localData.has[1] = true;
+                            localData.root = new TreeNode(data.Goal,false,true);                        }
+                        break;
+                    case 3:
+                        if (data.Stats3[first][second][third].female > 0) {
+                            localData.Stats3[first][second][third].female++;
+                            foundMatch = true;
+                            localData.has[2] = true;
+                            localData.root = new TreeNode(data.Goal,false,true);                        }
+                        break;
+                    case 4:
+                        if (data.Stats4[first][second][third][fourth].female > 0) {
+                            localData.Stats4[first][second][third][fourth].female++;
+                            foundMatch = true;
+                            localData.has[3] = true;
+                            localData.root = new TreeNode(data.Goal,false,true);                        }
+                        break;
+                    case 5:
+                        if (data.Stats5[first][second][third][fourth][fifth].female > 0) {
+                            localData.Stats5[first][second][third][fourth][fifth].female++;
+                            foundMatch = true;
+                            localData.has[4] = true;
+                            localData.root = new TreeNode(data.Goal,false,true);                        }
+                        break;
+                    default:
+                        if (data.Stats6[0][1][2][3][4][5].female > 0) {
+                            localData.Stats6[0][1][2][3][4][5].female++;
+                            foundMatch = true;
+                            localData.has[5] = true;
+                            localData.root = new TreeNode(data.Goal,false,true);                        }
+                        break;
                 }
             }
+            if (foundMatch) {
+                localData.success = true;
+                return localData;
+            }
+
         }
-        return new ReturnClass(false);
+        return new BreedingData(false);
     }
 }
 
