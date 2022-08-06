@@ -1,8 +1,8 @@
-import jdk.jshell.spi.ExecutionControl;
-
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.LinkedList;
@@ -21,6 +21,8 @@ public class GUI {
     JCheckBox NaturedInput = new JCheckBox("Nature? ");
     LinkedList<Component> NoGenderDisableList = new LinkedList<>();
     LinkedList<Component> NaturedPokemonDisableList = new LinkedList<>();
+    JCheckBox NaturedMale = new JCheckBox("♂:");
+    JCheckBox NaturedFemale = new JCheckBox("♀:");
     LinkedList<IVRow> IVRows = new LinkedList<>();
 
     int rows = 1;
@@ -52,7 +54,11 @@ public class GUI {
         IsGenderLessInput.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent itemEvent) {
-                Model.hasGender = itemEvent.getStateChange() != ItemEvent.SELECTED;
+                boolean notSelected=itemEvent.getStateChange() != ItemEvent.SELECTED;
+                Model.hasGender = notSelected;
+                Model.Stats1[6].male=notSelected?0:1;
+                Model.Stats1[6].female=notSelected?0:1;
+
                 updateGenderDependentUI();
             }
         });
@@ -63,12 +69,17 @@ public class GUI {
         NaturedInput.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent itemEvent) {
-                Model.Goal[6] = itemEvent.getStateChange() == ItemEvent.SELECTED;
+                boolean selected=itemEvent.getStateChange() == ItemEvent.SELECTED;
+                Model.Goal[6] = selected;
+                if (!Model.hasGender) {
+                    Model.Stats1[6].male=selected?1:0;
+                }
+
                 updateGenderDependentUI();
             }
         });
         Box NatureGender = Box.createHorizontalBox();
-        JCheckBox NaturedMale = new JCheckBox("♂:");
+
         NaturedMale.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent itemEvent) {
@@ -78,16 +89,16 @@ public class GUI {
         NaturedMale.setHorizontalTextPosition(SwingConstants.LEADING);
         NatureGender.add(NaturedMale, new BoxLayout(NatureGender, BoxLayout.X_AXIS));
         NaturedPokemonDisableList.add(NaturedMale);
-        JCheckBox female = new JCheckBox("♀:");
-        female.addItemListener(new ItemListener() {
+
+        NaturedFemale.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent itemEvent) {
                 Model.Stats1[6].female = (itemEvent.getStateChange() == ItemEvent.SELECTED) ? 1 : 0;
             }
         });
-        NaturedPokemonDisableList.add(female);
-        female.setHorizontalTextPosition(SwingConstants.LEADING);
-        NatureGender.add(female, new BoxLayout(NatureGender, BoxLayout.X_AXIS));
+        NaturedPokemonDisableList.add(NaturedFemale);
+        NaturedFemale.setHorizontalTextPosition(SwingConstants.LEADING);
+        NatureGender.add(NaturedFemale, new BoxLayout(NatureGender, BoxLayout.X_AXIS));
         NaturedPanel.add(NatureGender, new BoxLayout(NaturedPanel, BoxLayout.X_AXIS));
         NaturedPanel.add(Box.createHorizontalGlue());
 
@@ -193,7 +204,8 @@ public class GUI {
         for (Component c : NaturedPokemonDisableList) {
             c.setVisible(visible);
         }
-
+        NaturedMale.setSelected(Model.Stats1[6].male==1);
+        NaturedFemale.setSelected(Model.Stats1[6].female==1);
     }
 
     private void SetupGridLabels(JPanel panel, GridBagLayout gbl) {
@@ -382,11 +394,89 @@ public class GUI {
             result = main.CreateBreedingTreeGender(Model, num);
         else result = main.CreateBreedingTree(Model, num);
 
-        System.out.println(result.success);
+        if (result.success) System.out.println("Success");
+        else {
+            System.out.println("Not possible");
+            return;
+        }
         ShowResult(result.root);
     }
 
     private void ShowResult(TreeNode result) {
+        JFrame ResultFrame = new JFrame();
+        ResultFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        Box RowContainer = Box.createVerticalBox();
+        RowContainer.add(Box.createVerticalGlue());
+
+        JScrollPane scrollRect= new JScrollPane(RowContainer,ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scrollRect.setViewportView(RowContainer);
+        ResultFrame.getContentPane().add(scrollRect);
+
+
+
+        TreeNode curnode=result;
+        int layerCount=0;
+        int rowCount=0;
+        while (curnode!=null){
+            layerCount++;
+            rowCount += layerCount;
+            curnode=curnode.left;
+        }
+        System.out.println(layerCount);
+        layerCount=Math.max(3,layerCount);
+
+        //TODO: fix size calculation
+        ResultFrame.setSize(new Dimension((int)Math.pow(2,Math.min(5,layerCount))*30+20,512/*(int)Math.pow(2,rowCount)*16+20 ??????? */));
+
+        Box[] ResultRows = new Box[7];
+
+        for (int i = 0; i < ResultRows.length; i++) {
+            ResultRows[i] = Box.createHorizontalBox();
+            ResultRows[i].setMaximumSize(new Dimension(1920,(ResultRows.length-i)*17));
+            RowContainer.add(ResultRows[i]);
+        }
+        RowContainer.add(Box.createVerticalGlue());
+
+
+
+        if (result != null) DrawNodeRecursiv(result, 0, ResultRows,(int)Math.pow(2,layerCount)*30,false);
+
+        ResultFrame.setVisible(true);
+    }
+
+    private void DrawNodeRecursiv(TreeNode node, int lvl, Box[] Rows,int WindowWidth,boolean left) {
+        if (node.left != null) DrawNodeRecursiv(node.left, lvl + 1, Rows,WindowWidth,true);
+
+        String out = "";
+
+        int i = 0;
+        if (node.genderIsRelevant) {
+            if (node.male) out += "♂\n";
+            else out += "♀\n";
+        }
+        if (node.stats[i++]) out += "  HP  \n";
+        if (node.stats[i++]) out += "  Atk \n";
+        if (node.stats[i++]) out += "  Def \n";
+        if (node.stats[i++]) out += "Sp.Atk\n";
+        if (node.stats[i++]) out += "Sp.Def\n";
+        if (node.stats[i++]) out += " Init \n";
+        if (node.stats[i++]) out += "Nature";
+
+
+        JTextPane info = new JTextPane();
+        info.setText(out);
+        StyledDocument doc = info.getStyledDocument();
+        SimpleAttributeSet center = new SimpleAttributeSet();
+        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
+        info.setEditable(false);
+
+        info.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 10));
+        info.setBorder(BorderFactory.createLineBorder(Color.RED));
+        info.setMaximumSize(new Dimension((int)(left?Math.floor(WindowWidth/Math.pow(2,lvl)):Math.ceil(WindowWidth/Math.pow(2,lvl))),1000));
+        Rows[lvl].add(info);
+        if (node.right != null) DrawNodeRecursiv(node.right, lvl + 1, Rows,WindowWidth,false);
     }
 }
 

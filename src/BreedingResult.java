@@ -4,7 +4,7 @@ public class BreedingResult {
  class TreeNode{
     boolean [] stats=new boolean[7];
     boolean male=true;
-    boolean genderIsRelevant=true;
+    boolean genderIsRelevant=false;
 
     public TreeNode left,right;
 

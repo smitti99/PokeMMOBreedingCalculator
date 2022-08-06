@@ -70,16 +70,12 @@ public class main {
                     rightData = CreateBreedingTreeGender(copyOfRightData, statsToDo - 1);
                 }
                 if (!rightData.success) continue;
-                if(male) {
-                    rightData.root = new TreeNode(leftData.root, rightData.root, data.Goal, false, true);
-                } else if (female) {
-                    rightData.root = new TreeNode(leftData.root,rightData.root,data.Goal,true,true);
-                }else {
-                    rightData.root = new TreeNode(leftData.root,rightData.root,data.Goal,true,false);
-                }
-                rightData.AddStats(leftData);
-                rightData.success=true;
-                return rightData;
+                BreedingData outData = new BreedingData(rightData);
+                outData.root = new TreeNode(leftData.root,rightData.root,data.Goal,true,false);
+
+                outData.AddStats(leftData);
+                outData.success=true;
+                return outData;
             }
         }
         return new BreedingData(false);
@@ -106,8 +102,9 @@ public class main {
                 rightData = CreateBreedingTree(rightData, statsToDo - 1);
                 if (!rightData.success) continue;
                 rightData.AddStats(leftData);
-                rightData.root = new TreeNode(leftData.root,rightData.root,data.Goal,true,true);
-                return rightData;
+                BreedingData outData = new BreedingData(rightData);
+                outData.root = new TreeNode(leftData.root,rightData.root,data.Goal,true,false);
+                return outData;
             }
         }
         return new BreedingData(false);
@@ -256,6 +253,7 @@ public class main {
             }
             if (foundMatch) {
                 localData.success = true;
+                if(!data.hasGender) localData.root.genderIsRelevant=false;
                 return localData;
             }
 
